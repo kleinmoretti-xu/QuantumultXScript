@@ -1,7 +1,7 @@
 /**********************************************
  Aptv解锁永久订阅
  [rewrite_local]
- ^https?:\/\/api\.revenuecat\.com/v\d/(subscribers/(\$RCAnonymousID\%)?(\w)+|receipts)$ url script-echo-response https://raw.githubusercontent.com/xuzhencai/QuantumultXScript/main/script/APTV/APTV.js
+ ^https?:\/\/api\.revenuecat\.com/v\d/(subscribers/(\$RCAnonymousID\%)?(\w)+|receipts)$ url script-echo-response https://raw.githubusercontent.com/kleinmoretti-xu/QuantumultXScript/main/script/APTV/APTV.js
  hostname = api.revenuecat.com
  **********************************************/
 let result = {
