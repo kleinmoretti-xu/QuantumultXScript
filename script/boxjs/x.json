@@ -1,0 +1,71 @@
+{
+  "id": "x.app.sub",
+  "name": "x脚本订阅",
+  "description": "@x",
+  "author": "@x",
+  "icon": "https://img.88icon.com/download/jpg/20210124/ebbe62e09d86c7a8399ce8da6f390431_512_512.jpg",
+  "repo": "https://github.com/kleinmoretti-xu",
+  "apps": [
+    {
+      "id": "QiDian",
+      "name": "起点",
+      "keys": [
+        "qd_session",
+        "qd_session_2",
+        "qd_taskId",
+        "qd_taskId_2",
+        "qd_timeout"
+      ],
+      "desc": "",
+      "settings": [
+        {
+          "id": "qd_session",
+          "name": "qd_session",
+          "val": "",
+          "type": "text",
+          "placeholder": "",
+          "desc": ""
+        },
+        {
+          "id": "qd_session_2",
+          "name": "qd_session_2",
+          "val": "",
+          "type": "text",
+          "placeholder": "",
+          "desc": ""
+        },
+        {
+          "id": "qd_taskId",
+          "name": "qd_taskId",
+          "val": "",
+          "type": "text",
+          "placeholder": "",
+          "desc": ""
+        },
+        {
+          "id": "qd_taskId_2",
+          "name": "qd_taskId_2",
+          "val": "",
+          "type": "text",
+          "placeholder": "",
+          "desc": ""
+        },
+        {
+          "id": "qd_timeout",
+          "name": "间隔时间",
+          "val": 20,
+          "type": "number",
+          "placeholder": "",
+          "desc": "默认间隔20s"
+        }
+      ],
+      "script": "https://raw.githubusercontent.com/kleinmoretti-xu/QuantumultXScript/main/script/qidian/qd.js",
+      "author": "@x",
+      "repo": "https://github.com/kleinmoretti-xu",
+      "icons": [
+        "https://raw.githubusercontent.com/chxm1023/Script_X/main/icon/qidian.png",
+        "https://raw.githubusercontent.com/chxm1023/Script_X/main/icon/qidian.png"
+      ]
+    }
+  ]
+}
