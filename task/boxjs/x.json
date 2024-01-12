@@ -60,9 +60,10 @@
         }
       ],
       "script": "https://raw.githubusercontent.com/kleinmoretti-xu/QuantumultXScript/main/script/qidian/qd.js",
-      "author": "@x",
+      "author": "@klein.xu",
       "repo": "https://github.com/kleinmoretti-xu",
       "icons": [
+        "https://raw.githubusercontent.com/chxm1023/Script_X/main/icon/qidian.png",
         "https://raw.githubusercontent.com/chxm1023/Script_X/main/icon/qidian.png"
       ]
     },
@@ -129,6 +130,7 @@
       "author": "@klein.xu",
       "repo": "https://github.com/kleinmoretti-xu/imaotai",
       "icons": [
+        "https://github.com/kleinmoretti-xu/imaotai/blob/main/imaotai.png",
         "https://github.com/kleinmoretti-xu/imaotai/blob/main/imaotai.png"
       ],
       "script": "https://raw.githubusercontent.com/kleinmoretti-xu/QuantumultXScript/main/task/imaotai/imaotai.js"
