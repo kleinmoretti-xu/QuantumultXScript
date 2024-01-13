@@ -76,9 +76,13 @@ var Message = '' // 消息内容
     maotai.dictionary = dictionary
     var codes = itemCode.split(',')
     for (var code of codes) {
-        maotai.shopId = await maotai.getNearbyStore(code)
-        $.log(`获取到最近店铺id：${maotai.shopId}`)
-        await maotai.doReserve(code)
+        if (code) {
+            maotai.shopId = await maotai.getNearbyStore(code)
+            $.log(`获取到最近店铺id：${maotai.shopId}`)
+            if (maotai.shopId) {
+                await maotai.doReserve(code)
+            }
+        }
     }
     await maotai.getAward()
     /*if (!maotai.shopId) {
