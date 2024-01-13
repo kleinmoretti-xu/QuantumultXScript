@@ -22,10 +22,9 @@ var maotai = new Maotai()
 var isClearShopDir = $.getdata('imaotai__config__clearshopdir') || false // 是否清理店铺字典
 var province = $.getdata('imaotai__config__province') || '' // 省份
 var city = $.getdata('imaotai__config__city') || '' // 城市
-var itemCode = $.getdata('imaotai__config__itemcode') || '10213' // 预约项
+var itemCode = $.getdata('imaotai__config__itemcode') || '' // 预约项
 var location = $.getdata('imaotai__config__location') || '' // 地址经纬度
 var address = $.getdata('imaotai__config__address') || '' // 详细地址
-var shopid = $.getdata('imaotai__config__shopid') || '' // 商铺id
 var imaotaiParams = JSON.parse($.getdata('imaotai_params') || '{}') // 抓包参数
 var Message = '' // 消息内容
 !(async () => {
@@ -51,7 +50,6 @@ var Message = '' // 消息内容
     if (!address) throw '请在BoxJs中配置详细地址'
     if (!location) await queryAddress()
     $.log(`获取到经纬度：${location}`)
-    if (shopid) maotai.shopId = shopid
     // 当前时间段如果不是9点 - 10点，不允许预约
     var _hour = new Date().getHours()
     if (_hour < 9 || _hour > 10) throw '不在有效的预约时间内'
@@ -59,13 +57,11 @@ var Message = '' // 消息内容
     maotai.headers = Object.assign(maotai.headers, headers)
     maotai.userId = userId
     if (!maotai.version) {
-        var version = await maotai.getLatestVersion()
-        maotai.version = version
+        maotai.version = await maotai.getLatestVersion()
     }
     $.log(`当前版本号：${maotai.version}`)
     if (!maotai.sessionId) {
-        var sessionId = await maotai.getSessionId()
-        maotai.sessionId = sessionId
+        maotai.sessionId = await maotai.getSessionId()
     }
     $.log(`获取到sessionId：${maotai.sessionId}`)
     isClearShopDir && $.setdata(JSON.stringify([]), `imaotai_${province}_${city}_dictionary`)
@@ -78,13 +74,19 @@ var Message = '' // 消息内容
         $.log(`从缓存中获取到商铺地图数据`)
     }
     maotai.dictionary = dictionary
-    if (!maotai.shopId) {
-        var shopId = await maotai.getNearbyStore()
-        maotai.shopId = shopId
+    var codes = itemCode.split(',')
+    for (var code of codes) {
+        maotai.shopId = await maotai.getNearbyStore(code)
+        $.log(`获取到最近店铺id：${maotai.shopId}`)
+        await maotai.doReserve(code)
+    }
+    await maotai.getAward()
+    /*if (!maotai.shopId) {
+        maotai.shopId = await maotai.getNearbyStore()
     }
     $.log(`获取到最近店铺id：${maotai.shopId}`)
     await maotai.doReserve()
-    await maotai.getAward()
+    await maotai.getAward()*/
 })()
     .catch((e) => {
         $.log('', `❌ ${$.name}, 失败! 原因: ${e}!`, '')
@@ -185,9 +187,8 @@ function Maotai() {
             return arr
         }
 
-        // TODO:后续是否加入当地投放量最大的店铺
         // 获取最近店铺
-        async getNearbyStore() {
+        async getNearbyStore(itemCode) {
             var _ts = new Date().setHours(0, 0, 0, 0)
             var url = `https://static.moutai519.com.cn/mt-backend/xhr/front/mall/shop/list/slim/v3/${
                 this.sessionId
@@ -248,7 +249,7 @@ function Maotai() {
         }
 
         // 预约
-        async doReserve() {
+        async doReserve(itemCode) {
             var params = {
                 itemInfoList: [{count: 1, itemId: itemCode}],
                 sessionId: parseInt(this.sessionId),
@@ -294,7 +295,6 @@ function Maotai() {
                 body: JSON.stringify({})
             }
             var {body: resp} = await service.post(options)
-            // {"code":200,"message":null,"data":{"continueReserveRate":null,"awardRule":[{"goodId":20001,"goodName":"耐力","goodCode":null,"goodType":null,"goodUrl":null,"count":30}]},"error":null}
             var {code, data, message} = JSON.parse(resp)
             if (code !== 200) throw `领取耐力失败, ${message}`
             $.log(`领取耐力成功`)
