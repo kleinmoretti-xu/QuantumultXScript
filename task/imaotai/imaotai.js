@@ -50,6 +50,10 @@ var Message = '' // 消息内容
     if (!address) throw '请在BoxJs中配置详细地址'
     if (!location) await queryAddress()
     $.log(`获取到经纬度：${location}`)
+    if (maotai.isTodayApply()) {
+        maotai._award()
+        return false
+    }
     // 当前时间段如果不是9点 - 10点，不允许预约
     var _hour = new Date().getHours()
     if (_hour < 9 || _hour > 10) throw '不在有效的预约时间内'
@@ -85,12 +89,6 @@ var Message = '' // 消息内容
         }
     }
     await maotai.getAward()
-    /*if (!maotai.shopId) {
-        maotai.shopId = await maotai.getNearbyStore()
-    }
-    $.log(`获取到最近店铺id：${maotai.shopId}`)
-    await maotai.doReserve()
-    await maotai.getAward()*/
 })()
     .catch((e) => {
         $.log('', `❌ ${$.name}, 失败! 原因: ${e}!`, '')
@@ -303,6 +301,243 @@ function Maotai() {
             if (code !== 200) throw `领取耐力失败, ${message}`
             $.log(`领取耐力成功`)
             Message += `${JSON.stringify(data)}`
+        }
+
+        // 判断今日是否申购 -- success
+        async isTodayApply() {
+            try {
+                var options = {
+                    url: `https://app.moutai519.com.cn/xhr/front/mall/reservation/list/pageOne/queryV2`,
+                    headers: this.headers
+                }
+                var { body: resp } = await service.get(options)
+                var { code, data, message } = JSON.parse(resp)
+                if (code === 401) throw `token失效, 请重新抓包获取`
+                if (code === 2000) {
+                    if (data?.reservationItemVOS?.length > 0) {
+                        var todayReserveList = data.reservationItemVOS.filter((item) => {
+                            var { reservationTime } = item
+                            return new Date(reservationTime).toDateString() === new Date().toDateString()
+                        })
+                        if (todayReserveList.length > 0) {
+                            var name = todayReserveList.map((item) => item.itemName).join(' | ')
+                            $.log(`✅今日已申购 [${name}] `)
+                            return true
+                        }
+                    }
+                } else {
+                    $.log(`❌查询预约信息失败 ${message ? message : ''}!`)
+                }
+            } catch (e) {
+                $.log(`❌查询预约信息失败: ${e}!`)
+            }
+        }
+
+        // 查询小茅运信息 -- success
+        async queryXmy() {
+            try {
+                var options = {
+                    url: `https://h5.moutai519.com.cn/game/isolationPage/getUserIsolationPageData?__timestamp=${Date.now()}`,
+                    headers: this.headers
+                }
+                var { body: resp } = await service.get(options)
+                var { code, data, message } = JSON.parse(resp)
+                if (code === 401) throw `token失效, 请重新抓包获取`
+                if (code === 2000) {
+                    /**
+                     * energy: 耐力值
+                     * xmy: 小茅运
+                     * xmTravel: 旅行状态
+                     * energyReward: 耐力值奖励
+                     */
+                    var { energy, xmy, xmTravel, energyReward } = data
+                    $.log(`✅当前耐力值: ${energy}, ✅当前小茅运: ${xmy}`)
+                    /**
+                     * status: 1. 未开始 2. 进行中 3. 已完成
+                     * remainChance: 旅行剩余次数
+                     * travelEndTime: 旅行结束时间
+                     */
+                    var { status, remainChance, travelEndTime } = xmTravel
+                    var { value } = energyReward
+                    if (value) {
+                        await this.getUserEnergyAward() // 领取耐力
+                        energy += value
+                    }
+                    let currentPeriodCanConvertXmyNum = await this.exchangeRateInfo() // 获取本月剩余耐力值
+                    if (currentPeriodCanConvertXmyNum <= 0) throw `当月无可领取奖励` // 无需再旅行
+                    if (status == 1) {
+                        if (energy < 100) {
+                            throw `耐力值(${energy})不足100, 无法开始旅行`
+                        }
+                    }
+                    if (status == 2) throw `旅行进行中, 结束时间:${$.time('yyyy-MM-dd HH:mm:ss', travelEndTime * 1e3)}`
+                    return { remainChance, isFinished: status === 3, currentPeriodCanConvertXmyNum }
+                } else {
+                    throw `❌查询小茅运信息失败 ${message ? message : ''}!`
+                }
+            } catch (e) {
+                throw e
+            }
+        }
+        // 获取本月剩余耐力值 -- success
+        async exchangeRateInfo() {
+            return new Promise(async (resolve) => {
+                try {
+                    var options = {
+                        url: `https://h5.moutai519.com.cn/game/synthesize/exchangeRateInfo?__timestamp=${Date.now()}`,
+                        headers: this.headers
+                    }
+                    var { body: resp } = await service.get(options)
+                    var { code, data, message } = JSON.parse(resp)
+                    if (code === 2000) {
+                        var { currentPeriodCanConvertXmyNum } = data
+                        $.log(`✅本月剩余旅行奖励: ${currentPeriodCanConvertXmyNum}`)
+                        resolve(currentPeriodCanConvertXmyNum)
+                    } else {
+                        reject(`❌获取本月剩余耐力值失败 ${message ? message : ''}!`)
+                    }
+                } catch (e) {
+                    reject(`❌获取本月剩余耐力值失败: ${e}!`)
+                }
+            })
+        }
+        // 领取耐力值 -- success
+        async getUserEnergyAward() {
+            return new Promise(async (resolve) => {
+                try {
+                    var options = {
+                        url: `https://h5.moutai519.com.cn/game/isolationPage/getUserEnergyAward`,
+                        headers: this.headers,
+                        body: JSON.stringify({})
+                    }
+                    var { body: resp } = await service.post(options)
+                    var { code, data, message } = JSON.parse(resp)
+                    if (code === 200) {
+                        $.log(`✅领取耐力成功`)
+                        Message += `\n✅领取耐力成功`
+                    } else {
+                        $.log(`❌领取耐力失败 ${message ? message : ''}!`)
+                    }
+                } catch (e) {
+                    $.log(`❌领取耐力失败: ${e}!`)
+                } finally {
+                    resolve()
+                }
+            })
+        }
+        // 开始旅行 -- success
+        async startTravel() {
+            return new Promise(async (resolve, reject) => {
+                try {
+                    var options = {
+                        url: `https://h5.moutai519.com.cn/game/xmTravel/startTravel`,
+                        headers: this.headers
+                    }
+                    var { body: resp } = await service.post(options)
+                    var { code, data, message } = JSON.parse(resp)
+                    if (code === 2000) {
+                        $.log(`✅旅行成功!`)
+                        Message += `\n✅旅行成功!`
+                    } else {
+                        reject(`❌旅行失败 ${message ? message : ''}!`)
+                    }
+                } catch (e) {
+                    reject(`❌旅行失败: ${e}!`)
+                }
+            })
+        }
+        // 查询旅行奖励 -- success
+        async getXmTravelReward() {
+            return new Promise(async (resolve, reject) => {
+                try {
+                    var url = `https://h5.moutai519.com.cn/game/xmTravel/getXmTravelReward?__timestamp=${Date.now()}`
+                    var { body: resp } = await service.get({
+                        url,
+                        headers: this.headers
+                    })
+                    var { code, data, message } = JSON.parse(resp)
+                    if (code === 2000 && data?.travelRewardXmy) {
+                        var claimableXmy = data.travelRewardXmy
+                        $.log(`✅当前可领取${claimableXmy}小茅运!`)
+                        resolve(claimableXmy)
+                    } else {
+                        reject(`❌旅行暂未开始 ${message ? message : ''}`)
+                    }
+                } catch (e) {
+                    reject(`❌查询旅行奖励失败: ${e}!`)
+                }
+            })
+        }
+        // 领取旅行奖励 -- success
+        async receiveReward(claimableXmy) {
+            return new Promise(async (resolve) => {
+                try {
+                    var options = {
+                        url: `https://h5.moutai519.com.cn/game/xmTravel/receiveReward`,
+                        headers: this.headers
+                    }
+                    var { body: resp } = await service.post(options)
+                    var { code, data, message } = JSON.parse(resp)
+                    if (code === 2000) {
+                        $.log(`✅成功领取到${claimableXmy}小茅运!`)
+                        Message += `\n✅成功领取到${claimableXmy}小茅运!`
+                    } else {
+                        $.log(`❌领取旅行奖励失败 ${message ? message : ''}!`)
+                    }
+                } catch (e) {
+                    $.log(`❌领取旅行奖励失败: ${e}!`)
+                } finally {
+                    resolve()
+                }
+            })
+        }
+        // 每日分享 -- success
+        async shareReward() {
+            return new Promise(async (resolve) => {
+                try {
+                    var options = {
+                        url: `https://h5.moutai519.com.cn/game/xmTravel/shareReward`,
+                        headers: this.headers
+                    }
+                    var { body: resp } = await service.post(options)
+                    var { code, data, message } = JSON.parse(resp)
+                    if (code === 2000) {
+                        $.log(`✅分享成功!`)
+                        Message += `\n✅分享成功!`
+                    } else {
+                        $.log(`❌分享失败 ${message ? message : ''}!`)
+                    }
+                } catch (e) {
+                    $.log(`❌分享失败: ${e}!`)
+                } finally {
+                    resolve()
+                }
+            })
+        }
+        // 小茅运旅行
+        async _award() {
+            // 填充Cookie
+            var cookies = {
+                'MT-Device-ID-Wap': this.headers['MT-Device-ID'],
+                'MT-Token-Wap': this.headers['MT-Token'],
+                YX_SUPPORT_WEBP: '1'
+            }
+            this.headers = compatibleWithHTTP2({
+                ...this.headers,
+                Cookie: Object.entries(cookies)
+                    .map(([key, value]) => `${key}=${value}`)
+                    .join('; ')
+            })
+            var { remainChance, isFinished, currentPeriodCanConvertXmyNum } = await this.queryXmy()
+            if (isFinished) {
+                var claimableXmy = await this.getXmTravelReward() // 查询旅行奖励
+                await this.receiveReward(claimableXmy) // 领取旅行奖励
+                await this.shareReward() // 每日分享
+                if (currentPeriodCanConvertXmyNum <= claimableXmy) throw `当月无可领取奖励` // 无需再旅行
+            }
+            if (!remainChance) throw `今日已无旅行次数`
+            $.log(`✅今日剩余旅行次数: ${remainChance}`)
+            await this.startTravel() // 开始旅行
         }
     })()
 }
