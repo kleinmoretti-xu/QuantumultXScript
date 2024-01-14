@@ -315,7 +315,7 @@ function Maotai() {
                 var { body: resp } = await service.get(options)
                 var { code, data, message } = JSON.parse(resp)
                 if (code === 401) throw `token失效, 请重新抓包获取`
-                if (code === 2000) {
+                if (code === 200) {
                     if (data?.reservationItemVOS?.length > 0) {
                         var todayReserveList = data.reservationItemVOS.filter((item) => {
                             var { reservationTime } = item
@@ -345,7 +345,7 @@ function Maotai() {
                 var { body: resp } = await service.get(options)
                 var { code, data, message } = JSON.parse(resp)
                 if (code === 401) throw `token失效, 请重新抓包获取`
-                if (code === 2000) {
+                if (code === 200) {
                     /**
                      * energy: 耐力值
                      * xmy: 小茅运
@@ -391,7 +391,7 @@ function Maotai() {
                     }
                     var { body: resp } = await service.get(options)
                     var { code, data, message } = JSON.parse(resp)
-                    if (code === 2000) {
+                    if (code === 200) {
                         var { currentPeriodCanConvertXmyNum } = data
                         $.log(`✅本月剩余旅行奖励: ${currentPeriodCanConvertXmyNum}`)
                         resolve(currentPeriodCanConvertXmyNum)
@@ -437,7 +437,7 @@ function Maotai() {
                     }
                     var { body: resp } = await service.post(options)
                     var { code, data, message } = JSON.parse(resp)
-                    if (code === 2000) {
+                    if (code === 200) {
                         $.log(`✅旅行成功!`)
                         Message += `\n✅旅行成功!`
                     } else {
@@ -458,7 +458,7 @@ function Maotai() {
                         headers: this.headers
                     })
                     var { code, data, message } = JSON.parse(resp)
-                    if (code === 2000 && data?.travelRewardXmy) {
+                    if (code === 200 && data?.travelRewardXmy) {
                         var claimableXmy = data.travelRewardXmy
                         $.log(`✅当前可领取${claimableXmy}小茅运!`)
                         resolve(claimableXmy)
@@ -480,7 +480,7 @@ function Maotai() {
                     }
                     var { body: resp } = await service.post(options)
                     var { code, data, message } = JSON.parse(resp)
-                    if (code === 2000) {
+                    if (code === 200) {
                         $.log(`✅成功领取到${claimableXmy}小茅运!`)
                         Message += `\n✅成功领取到${claimableXmy}小茅运!`
                     } else {
@@ -503,7 +503,7 @@ function Maotai() {
                     }
                     var { body: resp } = await service.post(options)
                     var { code, data, message } = JSON.parse(resp)
-                    if (code === 2000) {
+                    if (code === 200) {
                         $.log(`✅分享成功!`)
                         Message += `\n✅分享成功!`
                     } else {
