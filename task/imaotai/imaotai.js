@@ -50,8 +50,10 @@ var Message = '' // 消息内容
     if (!address) throw '请在BoxJs中配置详细地址'
     if (!location) await queryAddress()
     $.log(`获取到经纬度：${location}`)
-    if (maotai.isTodayApply()) {
-        maotai._award()
+    var apply = await maotai.isTodayApply()
+    if (apply) {
+        $.log(`今天已申购，开始旅行。`)
+        await maotai._award()
         return false
     }
     // 当前时间段如果不是9点 - 10点，不允许预约
