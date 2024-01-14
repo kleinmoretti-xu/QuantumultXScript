@@ -302,7 +302,7 @@ function Maotai() {
             var {code, data, message} = JSON.parse(resp)
             if (code !== 200) throw `领取耐力失败, ${message}`
             $.log(`领取耐力成功`)
-            Message += `${JSON.stringigy(data)}`
+            Message += `${JSON.stringify(data)}`
         }
     })()
 }
