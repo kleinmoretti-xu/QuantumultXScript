@@ -71,14 +71,10 @@ var Message = '' // 消息内容
         $.log(`从缓存中获取到商铺地图数据`)
     }
     maotai.dictionary = dictionary
+    // 当前时间段如果不是9点 - 10点，不允许预约
+    var _hour = new Date().getHours()
     var apply = await maotai.isTodayApply()
-    if (apply) {
-        $.log(`今天已申购，开始旅行。`)
-        await maotai._award()
-    } else {
-        // 当前时间段如果不是9点 - 10点，不允许预约
-        var _hour = new Date().getHours()
-        if (_hour < 9 || _hour > 10) throw '不在有效的预约时间内'
+    if (_hour === 9 && !apply) {
         var codes = itemCode.split(',')
         for (var code of codes) {
             if (code) {
@@ -91,6 +87,8 @@ var Message = '' // 消息内容
         }
         await maotai.getAward()
     }
+    // 旅行
+    await maotai._award()
 })()
     .catch((e) => {
         $.log('', `❌ ${$.name}, 失败! 原因: ${e}!`, '')
