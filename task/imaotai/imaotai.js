@@ -440,6 +440,7 @@ function Maotai() {
                     if (code === 2000) {
                         $.log(`✅旅行成功!`)
                         Message += `\n✅旅行成功!`
+                        resolve(data)
                     } else {
                         reject(`❌旅行失败 ${message ? message : ''}!`)
                     }
