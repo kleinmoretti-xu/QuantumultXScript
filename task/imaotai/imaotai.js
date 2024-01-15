@@ -312,7 +312,9 @@ function Maotai() {
                     url: `https://app.moutai519.com.cn/xhr/front/mall/reservation/list/pageOne/queryV2`,
                     headers: this.headers
                 }
+                $.log(`查询预约信息请求头： ${JSON.stringify(this.headers)}`)
                 var { body: resp } = await service.get(options)
+                $.log(`查询预约信息： ${JSON.stringify(resp)}`)
                 var { code, data, message } = JSON.parse(resp)
                 if (code === 401) throw `token失效, 请重新抓包获取`
                 if (code === 200) {
