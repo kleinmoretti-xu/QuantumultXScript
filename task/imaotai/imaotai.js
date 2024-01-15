@@ -312,12 +312,10 @@ function Maotai() {
                     url: `https://app.moutai519.com.cn/xhr/front/mall/reservation/list/pageOne/queryV2`,
                     headers: this.headers
                 }
-                $.log(`查询预约信息请求头： ${JSON.stringify(this.headers)}`)
                 var { body: resp } = await service.get(options)
-                $.log(`查询预约信息： ${JSON.stringify(resp)}`)
                 var { code, data, message } = JSON.parse(resp)
                 if (code === 401) throw `token失效, 请重新抓包获取`
-                if (code === 200) {
+                if (code === 2000) {
                     if (data?.reservationItemVOS?.length > 0) {
                         var todayReserveList = data.reservationItemVOS.filter((item) => {
                             var { reservationTime } = item
@@ -347,7 +345,7 @@ function Maotai() {
                 var { body: resp } = await service.get(options)
                 var { code, data, message } = JSON.parse(resp)
                 if (code === 401) throw `token失效, 请重新抓包获取`
-                if (code === 200) {
+                if (code === 2000) {
                     /**
                      * energy: 耐力值
                      * xmy: 小茅运
@@ -369,12 +367,12 @@ function Maotai() {
                     }
                     let currentPeriodCanConvertXmyNum = await this.exchangeRateInfo() // 获取本月剩余耐力值
                     if (currentPeriodCanConvertXmyNum <= 0) throw `当月无可领取奖励` // 无需再旅行
-                    if (status == 1) {
+                    if (status === 1) {
                         if (energy < 100) {
                             throw `耐力值(${energy})不足100, 无法开始旅行`
                         }
                     }
-                    if (status == 2) throw `旅行进行中, 结束时间:${$.time('yyyy-MM-dd HH:mm:ss', travelEndTime * 1e3)}`
+                    if (status === 2) throw `旅行进行中, 结束时间:${$.time('yyyy-MM-dd HH:mm:ss', travelEndTime * 1e3)}`
                     return { remainChance, isFinished: status === 3, currentPeriodCanConvertXmyNum }
                 } else {
                     throw `❌查询小茅运信息失败 ${message ? message : ''}!`
@@ -393,7 +391,7 @@ function Maotai() {
                     }
                     var { body: resp } = await service.get(options)
                     var { code, data, message } = JSON.parse(resp)
-                    if (code === 200) {
+                    if (code === 2000) {
                         var { currentPeriodCanConvertXmyNum } = data
                         $.log(`✅本月剩余旅行奖励: ${currentPeriodCanConvertXmyNum}`)
                         resolve(currentPeriodCanConvertXmyNum)
@@ -439,7 +437,7 @@ function Maotai() {
                     }
                     var { body: resp } = await service.post(options)
                     var { code, data, message } = JSON.parse(resp)
-                    if (code === 200) {
+                    if (code === 2000) {
                         $.log(`✅旅行成功!`)
                         Message += `\n✅旅行成功!`
                     } else {
@@ -460,7 +458,7 @@ function Maotai() {
                         headers: this.headers
                     })
                     var { code, data, message } = JSON.parse(resp)
-                    if (code === 200 && data?.travelRewardXmy) {
+                    if (code === 2000 && data?.travelRewardXmy) {
                         var claimableXmy = data.travelRewardXmy
                         $.log(`✅当前可领取${claimableXmy}小茅运!`)
                         resolve(claimableXmy)
@@ -482,7 +480,7 @@ function Maotai() {
                     }
                     var { body: resp } = await service.post(options)
                     var { code, data, message } = JSON.parse(resp)
-                    if (code === 200) {
+                    if (code === 2000) {
                         $.log(`✅成功领取到${claimableXmy}小茅运!`)
                         Message += `\n✅成功领取到${claimableXmy}小茅运!`
                     } else {
@@ -505,7 +503,7 @@ function Maotai() {
                     }
                     var { body: resp } = await service.post(options)
                     var { code, data, message } = JSON.parse(resp)
-                    if (code === 200) {
+                    if (code === 2000) {
                         $.log(`✅分享成功!`)
                         Message += `\n✅分享成功!`
                     } else {
