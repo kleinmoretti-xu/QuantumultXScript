@@ -75,22 +75,22 @@ var Message = '' // 消息内容
     if (apply) {
         $.log(`今天已申购，开始旅行。`)
         await maotai._award()
-        return false
-    }
-    // 当前时间段如果不是9点 - 10点，不允许预约
-    var _hour = new Date().getHours()
-    if (_hour < 9 || _hour > 10) throw '不在有效的预约时间内'
-    var codes = itemCode.split(',')
-    for (var code of codes) {
-        if (code) {
-            maotai.shopId = await maotai.getNearbyStore(code)
-            $.log(`获取到最近店铺id：${maotai.shopId}`)
-            if (maotai.shopId) {
-                await maotai.doReserve(code)
+    } else {
+        // 当前时间段如果不是9点 - 10点，不允许预约
+        var _hour = new Date().getHours()
+        if (_hour < 9 || _hour > 10) throw '不在有效的预约时间内'
+        var codes = itemCode.split(',')
+        for (var code of codes) {
+            if (code) {
+                maotai.shopId = await maotai.getNearbyStore(code)
+                $.log(`获取到最近店铺id：${maotai.shopId}`)
+                if (maotai.shopId) {
+                    await maotai.doReserve(code)
+                }
             }
         }
+        await maotai.getAward()
     }
-    await maotai.getAward()
 })()
     .catch((e) => {
         $.log('', `❌ ${$.name}, 失败! 原因: ${e}!`, '')
