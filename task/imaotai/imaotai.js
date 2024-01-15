@@ -50,15 +50,6 @@ var Message = '' // 消息内容
     if (!address) throw '请在BoxJs中配置详细地址'
     if (!location) await queryAddress()
     $.log(`获取到经纬度：${location}`)
-    var apply = await maotai.isTodayApply()
-    if (apply) {
-        $.log(`今天已申购，开始旅行。`)
-        await maotai._award()
-        return false
-    }
-    // 当前时间段如果不是9点 - 10点，不允许预约
-    var _hour = new Date().getHours()
-    if (_hour < 9 || _hour > 10) throw '不在有效的预约时间内'
     var {headers, userId} = imaotaiParams
     maotai.headers = Object.assign(maotai.headers, headers)
     maotai.userId = userId
@@ -80,6 +71,15 @@ var Message = '' // 消息内容
         $.log(`从缓存中获取到商铺地图数据`)
     }
     maotai.dictionary = dictionary
+    var apply = await maotai.isTodayApply()
+    if (apply) {
+        $.log(`今天已申购，开始旅行。`)
+        await maotai._award()
+        return false
+    }
+    // 当前时间段如果不是9点 - 10点，不允许预约
+    var _hour = new Date().getHours()
+    if (_hour < 9 || _hour > 10) throw '不在有效的预约时间内'
     var codes = itemCode.split(',')
     for (var code of codes) {
         if (code) {
@@ -522,14 +522,14 @@ function Maotai() {
             var cookies = {
                 'MT-Device-ID-Wap': this.headers['MT-Device-ID'],
                 'MT-Token-Wap': this.headers['MT-Token'],
-                YX_SUPPORT_WEBP: '1'
+                'YX_SUPPORT_WEBP': '1'
             }
-            this.headers = compatibleWithHTTP2({
+            /*this.headers = compatibleWithHTTP2({
                 ...this.headers,
                 Cookie: Object.entries(cookies)
                     .map(([key, value]) => `${key}=${value}`)
                     .join('; ')
-            })
+            })*/
             var { remainChance, isFinished, currentPeriodCanConvertXmyNum } = await this.queryXmy()
             if (isFinished) {
                 var claimableXmy = await this.getXmTravelReward() // 查询旅行奖励
