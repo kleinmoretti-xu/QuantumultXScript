@@ -268,6 +268,7 @@ function Maotai() {
                     ...params
                 })
             }
+            $.log(`预约参数：${JSON.stringify(options)}`)
             var {body: resp} = await service.post(options)
             $.log(`预约结果：${JSON.stringify(resp)}`)
             var {code, data, message} = JSON.parse(resp)
