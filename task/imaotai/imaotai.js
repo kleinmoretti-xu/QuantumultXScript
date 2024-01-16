@@ -269,6 +269,7 @@ function Maotai() {
                 })
             }
             var {body: resp} = await service.post(options)
+            $.log(`预约结果：${JSON.stringify(resp)}`)
             var {code, data, message} = JSON.parse(resp)
             if (code === 401) {
                 Message = `预约失败\ntoken失效, 请重新抓包获取`
