@@ -52,7 +52,7 @@ var Message = '' // 消息内容
     $.log(`获取到经纬度：${location}`)
     var {headers, userId} = imaotaiParams
     maotai.headers = Object.assign(maotai.headers, headers)
-    maotai.userId = userId
+    maotai.userId = userId + ''
     if (!maotai.version) {
         maotai.version = await maotai.getLatestVersion()
     }
@@ -138,6 +138,7 @@ function Maotai() {
                 'User-Agent': `iOS;14.3;Apple;iPhone 12`, // 抓
                 'MT-K': Date.now(),
                 'MT-R': `clips_OlU6TmFRag5rCXwbNAQ/Tz1SKlN8THcecBp/HGhHdg==`,
+                'MT-V' : `ecd2de7488929c43dd890309eem`,
                 'MT-Bundle-ID': `com.moutai.mall`,
                 'MT-Network-Type': `WIFI`,
                 'Accept': `*/*`,
@@ -260,6 +261,7 @@ function Maotai() {
             }
             var helper = new DecryptHelper()
             var actParam = helper.Encrypt(JSON.stringify(params))
+            delete params.userId
             var options = {
                 url: `https://app.moutai519.com.cn/xhr/front/mall/reservation/add`,
                 headers: this.headers,
@@ -519,18 +521,6 @@ function Maotai() {
         }
         // 小茅运旅行
         async _award() {
-            // 填充Cookie
-            var cookies = {
-                'MT-Device-ID-Wap': this.headers['MT-Device-ID'],
-                'MT-Token-Wap': this.headers['MT-Token'],
-                'YX_SUPPORT_WEBP': '1'
-            }
-            /*this.headers = compatibleWithHTTP2({
-                ...this.headers,
-                Cookie: Object.entries(cookies)
-                    .map(([key, value]) => `${key}=${value}`)
-                    .join('; ')
-            })*/
             var { remainChance, isFinished, currentPeriodCanConvertXmyNum } = await this.queryXmy()
             if (isFinished) {
                 var claimableXmy = await this.getXmTravelReward() // 查询旅行奖励
