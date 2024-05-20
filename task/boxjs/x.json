@@ -128,6 +128,14 @@
           ]
         },
         {
+          "id": "imaotai__config__location",
+          "name": "地址经纬度",
+          "val": null,
+          "type": "text",
+          "rows": 1,
+          "desc": "申购门店经纬度"
+        },
+        {
           "id": "imaotai__config__address",
           "name": "当前位置",
           "val": null,
