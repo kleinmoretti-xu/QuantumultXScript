@@ -4,7 +4,7 @@ $.taskId = $.getdata("qd_taskId");
 $.taskId_2 = $.getdata("qd_taskId_2");
 $.session = $.getdata("qd_session");
 $.session_2 = $.getdata("qd_session_2");
-$.timeout = $.getdata("qd_timeout") ? $.getdata("qd_timeout") : 20;
+$.timeout = $.getdata("qd_timeout") ? $.getdata("qd_timeout") : 15;
 
 if (!$.taskId) {
     $.log("⚠️任务1信息不全!");
@@ -35,12 +35,16 @@ if (!$.session_2) {
     for (var i = 0; i < 8; i++) {
         $.log(`🟡任务1执行次数: ${i + 1}次`);
         await task($.session);
-        await $.wait($.timeout * 1000);
+        if(i < 7){
+         await $.wait($.timeout * 1000);
+        }
     }
     for (var j = 0; j < 3; j++) {
         $.log(`🟡任务2执行次数: ${j + 1}次`);
         await task($.session_2);
-        await $.wait($.timeout * 1000);
+        if(j < 2){
+         await $.wait($.timeout * 1000);
+        }
     }
 })()
     .catch((e) => $.logErr(e))
